@@ -947,15 +947,17 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
       </div>
       <div class="section"><h3>Schedule &amp; results</h3><ul class="tsched">${rows}</ul></div>
       <div class="section"><h3>Roster &amp; season stats</h3>
+        ${roster.length ? subsToggle() : ''}
         ${roster.length ? `<div class="tablewrap"><table class="stat-table" style="min-width:720px"><thead><tr>${COLS.filter(c => c[0] !== 'team').map(th).join('')}</tr></thead><tbody>${statBody(statRows(id), false)}</tbody></table></div>
-        <p class="footnote">Tap a column to sort. Season stats through games of ${fmt(statsThrough(), { month: 'short', day: 'numeric' })}. Win-loss is the player's record in games they played.</p>` : '<p class="empty">Roster not posted yet.</p>'}
+        <p class="footnote">Tap a column to sort. Season stats through games of ${fmt(statsThrough(), { month: 'short', day: 'numeric' })}. ${excludeSubs ? 'Only games played for this team count.' : 'Includes games a player subbed for another team.'} Win-loss is the player's record in the games counted.</p>` : '<p class="empty">Roster not posted yet.</p>'}
       </div>
     </section></div>`;
   }
 
   /* ---------- Stats ---------- */
   const statsHead = () => `<div class="sec-head"><h2>Stats</h2><nav class="subnav" aria-label="Stats pages"><a href="#stats"${view === 'stats' ? ' aria-current="page"' : ''}>Leaders</a><a href="#players"${view === 'players' ? ' aria-current="page"' : ''}>All players &amp; teams</a></nav></div>
-    <div class="stat-opts"><label class="switch" for="excl-subs"><input type="checkbox" id="excl-subs" role="switch"${excludeSubs ? ' checked' : ''}>Exclude subs</label>
+    ${subsToggle()}`;
+  const subsToggle = () => `<div class="stat-opts"><label class="switch" for="excl-subs"><input type="checkbox" id="excl-subs" role="switch"${excludeSubs ? ' checked' : ''}>Exclude subs</label>
       <span class="small muted">${excludeSubs ? 'Showing rostered players only, counting just the games they played for their own team.' : 'Includes subs and games players subbed for other teams.'}</span></div>`;
   function vStats() {
     const min = minGP();
@@ -973,7 +975,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   }
   const COLS = [['name', 'Player'], ['team', 'Team'], ['gp', 'GP'], ['pts', 'PTS'], ['ptsg', 'PPG'], ['reb', 'REB'], ['rebg', 'RPG'], ['ast', 'AST'], ['astg', 'APG'], ['stl', 'STL'], ['stlg', 'SPG'], ['blk', 'BLK'], ['blkg', 'BPG'], ['w', 'W-L']];
   function statRows(teamId) {
-    let rows = playerStats(!teamId && excludeSubs);
+    let rows = playerStats(excludeSubs);
     if (teamId) rows = rows.filter(s => s.p.team === teamId);
     else {
       if (statTeam !== 'all') rows = rows.filter(s => (s.p.team || 'SUB') === statTeam);
